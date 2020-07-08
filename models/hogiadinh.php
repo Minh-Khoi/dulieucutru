@@ -36,6 +36,18 @@ class hogiadinh
     $this->thongtin_phuctra = $this->get_thongtinphuctra();
   }
 
+  /** Lọc ra nhân khẩu sinh sau năm 2015 (không cần chỉnh sửa bổ sung về CMND và nơi đăng ký khai sinh, vẫn phải đính chính Địa chỉ) */
+  private function get_sinh_sau_2015()
+  {
+    $count = 0;
+    foreach ($this->array_of_nhankhau as $k => $nguoi) {
+      if ($this->get_nam_sinh($nguoi) > 2015) {
+        $count++;
+      }
+    }
+    return $count;
+  }
+
   private function get_thongtinphuctra()
   {
     // var_dump($this->array_of_nhankhau);
@@ -59,7 +71,7 @@ class hogiadinh
 
   private function get_thongtinphuctra_1_nguoi(stdClass $nhankhau)
   {
-    global $ho_ten, $cmnd_ban_than, $cmnd_cha, $cmnd_chu_ho, $so_seri,
+    global $ho_ten, $cmnd_ban_than, $cmnd_cha, $cmnd_chu_ho, $so_seri, $ban_sao_ban_chinh, $so_giay_ks, $ngay_cap_giay_ks,
       $cmnd_me, $cmnd_vo_chong, $noi_dkks, $gioi_tinh, $ngay_sinh;
 
     // Nếu nhân khẩu sinh sau năm 2015 thì không cần bổ sung thêm gì
@@ -81,7 +93,7 @@ class hogiadinh
     $co_thongtin_bosung = true;
     $co_thongtin_chua_bosung_duoc = true;
     $first_of_chuabosung = true;
-    $end_of_dabosung = false;
+    // $end_of_dabosung = false;
 
     // holding values
     $thongtinphuctra_canhan_dabosung = "Đã bổ sung: ";
@@ -89,7 +101,7 @@ class hogiadinh
     // var_dump($nhankhau);
     // var_dump(isset($nhankhau->cmnd_ban_than));
     if (isset($nhankhau->$so_seri)) {
-      $thongtinphuctra_canhan_dabosung .= "số sổ hộ khẩu, ";
+      $thongtinphuctra_canhan_dabosung .= "số sổ hộ khẩu: {$nhankhau->$so_seri}, ";
       $co_thongtin_bosung = false;
       // echo "block running";
     } else {
@@ -99,7 +111,7 @@ class hogiadinh
     }
     if (isset($nhankhau->$cmnd_ban_than)) {
       $co_thongtin_bosung = false;
-      $thongtinphuctra_canhan_dabosung .= ($nam_sinh < 2000) ? "" : "số CMND bản thân, ";
+      $thongtinphuctra_canhan_dabosung .= ($nam_sinh < 2000) ? "" : "số CMND bản thân: {$nhankhau->$cmnd_ban_than}, ";
       // echo "block running";
     } else {
       $co_thongtin_chua_bosung_duoc = ($nam_sinh < 2000) ? true : false;
@@ -110,7 +122,7 @@ class hogiadinh
     }
     if (isset($nhankhau->$cmnd_chu_ho)) {
       $co_thongtin_bosung = false;
-      $thongtinphuctra_canhan_dabosung .= "số CMND chủ hộ, ";
+      $thongtinphuctra_canhan_dabosung .= "số CMND chủ hộ: {$nhankhau->$cmnd_chu_ho}, ";
     } else {
       $co_thongtin_chua_bosung_duoc = false;
       $thongtinphuctra_canhan_chuacungcap .= ((!$first_of_chuabosung) ? "," : "") . " số CMND chủ hộ ";
@@ -118,7 +130,7 @@ class hogiadinh
     }
     if (isset($nhankhau->$cmnd_cha)) {
       $co_thongtin_bosung = false;
-      $thongtinphuctra_canhan_dabosung .= "số CMND cha, ";
+      $thongtinphuctra_canhan_dabosung .= "số CMND cha: {$nhankhau->$cmnd_cha}, ";
     } else {
       $co_thongtin_chua_bosung_duoc = false;
       $thongtinphuctra_canhan_chuacungcap .= ((!$first_of_chuabosung) ? "," : "") . " số CMND cha ";
@@ -126,7 +138,7 @@ class hogiadinh
     }
     if (isset($nhankhau->$cmnd_me)) {
       $co_thongtin_bosung = false;
-      $thongtinphuctra_canhan_dabosung .= "số CMND mẹ, ";
+      $thongtinphuctra_canhan_dabosung .= "số CMND mẹ: {$nhankhau->$cmnd_me}, ";
     } else {
       $co_thongtin_chua_bosung_duoc = false;
       $thongtinphuctra_canhan_chuacungcap .= ((!$first_of_chuabosung) ? "," : "") . " số CMND mẹ ";
@@ -135,7 +147,7 @@ class hogiadinh
     if (isset($nhankhau->$cmnd_vo_chong)) {
       $co_thongtin_bosung = false;
       $thongtinphuctra_canhan_dabosung .= "số CMND "
-        . ((strtolower($nhankhau->$gioi_tinh) == "nam") ? "vợ" : "chồng") . ", ";
+        . ((strtolower($nhankhau->$gioi_tinh) == "nam") ? "vợ" : "chồng") . ": {$nhankhau->$cmnd_vo_chong}, ";
     } else {
       $co_thongtin_chua_bosung_duoc = false;
       $thongtinphuctra_canhan_chuacungcap .= ((!$first_of_chuabosung) ? "," : "")
@@ -144,7 +156,10 @@ class hogiadinh
     }
     if (isset($nhankhau->$noi_dkks)) {
       $co_thongtin_bosung = false;
-      $thongtinphuctra_canhan_dabosung .= "nơi đăng ký khai sinh.";
+      if (isset($nhankhau->$so_giay_ks)) {
+        $thongtinphuctra_canhan_dabosung .= "công dân cung cấp giấy khai sinh {$nhankhau->$ban_sao_ban_chinh} "
+          . $nhankhau->$so_giay_ks . " cấp ngày " . $nhankhau->$ngay_cap_giay_ks . " bởi UBND phường Hương Chữ, Hương Trà, Thừa Thiên Huế.";
+      }
       $thongtinphuctra_canhan_chuacungcap .= ".";
     } else {
       $co_thongtin_chua_bosung_duoc = false;

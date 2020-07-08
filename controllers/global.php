@@ -18,3 +18,5 @@ $GLOBALS['cmnd_me'] = "CMND mẹ";
 $GLOBALS['cmnd_vo_chong'] = "CMND vợ/chồng";
 $GLOBALS['noi_dkks'] = "Nơi ĐKKS";
 $GLOBALS['ban_sao_ban_chinh'] = "Bản sao Bản chính";
+$GLOBALS['so_giay_ks'] = "Số giấy KS";
+$GLOBALS['ngay_cap_giay_ks'] = "Ngày cấp GKS";
